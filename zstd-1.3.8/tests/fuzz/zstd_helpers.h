@@ -27,7 +27,6 @@ ZSTD_compressionParameters FUZZ_randomCParams(size_t srcSize, uint32_t *state);
 ZSTD_frameParameters FUZZ_randomFParams(uint32_t *state);
 ZSTD_parameters FUZZ_randomParams(size_t srcSize, uint32_t *state);
 
-
 #ifdef __cplusplus
 }
 #endif

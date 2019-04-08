@@ -20,7 +20,9 @@
 static int g_max_name_len = 0;
 
 /** Check if a name contains a comma or is too long. */
-static int is_name_bad(char const* name) {
+static int
+is_name_bad(char const *name)
+{
     if (name == NULL)
         return 1;
     int const len = strlen(name);
@@ -33,7 +35,9 @@ static int is_name_bad(char const* name) {
 }
 
 /** Check if any of the names contain a comma. */
-static int are_names_bad() {
+static int
+are_names_bad()
+{
     for (size_t method = 0; methods[method] != NULL; ++method)
         if (is_name_bad(methods[method]->name)) {
             fprintf(stderr, "method name %s is bad\n", methods[method]->name);
@@ -59,13 +63,13 @@ static int are_names_bad() {
  */
 
 /** Option variables filled by parse_args. */
-static char const* g_output = NULL;
-static char const* g_diff = NULL;
-static char const* g_cache = NULL;
-static char const* g_zstdcli = NULL;
-static char const* g_config = NULL;
-static char const* g_data = NULL;
-static char const* g_method = NULL;
+static char const *g_output = NULL;
+static char const *g_diff = NULL;
+static char const *g_cache = NULL;
+static char const *g_zstdcli = NULL;
+static char const *g_config = NULL;
+static char const *g_data = NULL;
+static char const *g_method = NULL;
 
 typedef enum {
     required_option,
@@ -77,10 +81,10 @@ typedef enum {
  * Extra state that we need to keep per-option that we can't store in getopt.
  */
 struct option_extra {
-    int id; /**< The short option name, used as an id. */
-    char const* help; /**< The help message. */
+    int id;               /**< The short option name, used as an id. */
+    char const *help;     /**< The help message. */
     option_type opt_type; /**< The option type: required, optional, or help. */
-    char const** value; /**< The value to set or NULL if no_argument. */
+    char const **value;   /**< The value to set or NULL if no_argument. */
 };
 
 /** The options. */
@@ -113,48 +117,47 @@ static struct option_extra long_extras[] = {
 static char const short_options[] = "c:d:ho:z:";
 
 /** Return the help string for the option type. */
-static char const* required_message(option_type opt_type) {
+static char const *
+required_message(option_type opt_type)
+{
     switch (opt_type) {
-        case required_option:
-            return "[required]";
-        case optional_option:
-            return "[optional]";
-        case help_option:
-            return "";
-        default:
-            assert(0);
-            return NULL;
+    case required_option:
+        return "[required]";
+    case optional_option:
+        return "[optional]";
+    case help_option:
+        return "";
+    default:
+        assert(0);
+        return NULL;
     }
 }
 
 /** Print the help for the program. */
-static void print_help(void) {
+static void
+print_help(void)
+{
     fprintf(stderr, "regression test runner\n");
     size_t const nargs = sizeof(long_options) / sizeof(long_options[0]);
     for (size_t i = 0; i < nargs; ++i) {
         if (long_options[i].val < 128) {
             /* Long / short  - help [option type] */
-            fprintf(
-                stderr,
-                "--%s / -%c \t- %s %s\n",
-                long_options[i].name,
-                long_options[i].val,
-                long_extras[i].help,
-                required_message(long_extras[i].opt_type));
+            fprintf(stderr, "--%s / -%c \t- %s %s\n", long_options[i].name,
+                    long_options[i].val, long_extras[i].help,
+                    required_message(long_extras[i].opt_type));
         } else {
             /* Short / long  - help [option type] */
-            fprintf(
-                stderr,
-                "--%s      \t- %s %s\n",
-                long_options[i].name,
-                long_extras[i].help,
-                required_message(long_extras[i].opt_type));
+            fprintf(stderr, "--%s      \t- %s %s\n", long_options[i].name,
+                    long_extras[i].help,
+                    required_message(long_extras[i].opt_type));
         }
     }
 }
 
 /** Parse the arguments. Teturn 0 on success. Print help on failure. */
-static int parse_args(int argc, char** argv) {
+static int
+parse_args(int argc, char **argv)
+{
     int option_index = 0;
     int c;
 
@@ -175,11 +178,11 @@ static int parse_args(int argc, char** argv) {
             continue;
 
         switch (c) {
-            case 'h':
-            case '?':
-            default:
-                print_help();
-                return 1;
+        case 'h':
+        case '?':
+        default:
+            print_help();
+            return 1;
         }
     }
 
@@ -191,10 +194,8 @@ static int parse_args(int argc, char** argv) {
             continue;
         if (*long_extras[i].value != NULL)
             continue;
-        fprintf(
-            stderr,
-            "--%s is a required argument but is not set\n",
-            long_options[i].name);
+        fprintf(stderr, "--%s is a required argument but is not set\n",
+                long_options[i].name);
         bad = 1;
     }
     if (bad) {
@@ -219,34 +220,25 @@ static int parse_args(int argc, char** argv) {
         fflush(stderr); \
     } while (0)
 
-void tprint_names(
-    FILE* results,
-    char const* data_name,
-    char const* config_name,
-    char const* method_name) {
+void
+tprint_names(FILE *results, char const *data_name, char const *config_name,
+             char const *method_name)
+{
     int const data_padding = g_max_name_len - strlen(data_name);
     int const config_padding = g_max_name_len - strlen(config_name);
     int const method_padding = g_max_name_len - strlen(method_name);
 
-    tprintf(
-        results,
-        "%s, %*s%s, %*s%s, %*s",
-        data_name,
-        data_padding,
-        "",
-        config_name,
-        config_padding,
-        "",
-        method_name,
-        method_padding,
-        "");
+    tprintf(results, "%s, %*s%s, %*s%s, %*s", data_name, data_padding, "",
+            config_name, config_padding, "", method_name, method_padding, "");
 }
 
 /**
  * Run all the regression tests and record the results table to results and
  * stderr progressively.
  */
-static int run_all(FILE* results) {
+static int
+run_all(FILE *results)
+{
     tprint_names(results, "Data", "Config", "Method");
     tprintf(results, "Total compressed size\n");
     for (size_t method = 0; methods[method] != NULL; ++method) {
@@ -256,7 +248,7 @@ static int run_all(FILE* results) {
             if (g_data != NULL && strcmp(data[datum]->name, g_data))
                 continue;
             /* Create the state common to all configs */
-            method_state_t* state = methods[method]->create(data[datum]);
+            method_state_t *state = methods[method]->create(data[datum]);
             for (size_t config = 0; configs[config] != NULL; ++config) {
                 if (g_config != NULL && strcmp(configs[config]->name, g_config))
                     continue;
@@ -267,17 +259,13 @@ static int run_all(FILE* results) {
                     methods[method]->compress(state, configs[config]);
                 if (result_is_skip(result))
                     continue;
-                tprint_names(
-                    results,
-                    data[datum]->name,
-                    configs[config]->name,
-                    methods[method]->name);
+                tprint_names(results, data[datum]->name, configs[config]->name,
+                             methods[method]->name);
                 if (result_is_error(result)) {
                     tprintf(results, "%s\n", result_get_error_string(result));
                 } else {
                     tprintf(
-                        results,
-                        "%llu\n",
+                        results, "%llu\n",
                         (unsigned long long)result_get_data(result).total_size);
                 }
                 tflush(results);
@@ -289,7 +277,9 @@ static int run_all(FILE* results) {
 }
 
 /** memcmp() the old results file and the new results file. */
-static int diff_results(char const* actual_file, char const* expected_file) {
+static int
+diff_results(char const *actual_file, char const *expected_file)
+{
     data_buffer_t const actual = data_buffer_read(actual_file);
     data_buffer_t const expected = data_buffer_read(expected_file);
     int ret = 1;
@@ -299,20 +289,16 @@ static int diff_results(char const* actual_file, char const* expected_file) {
         goto out;
     }
     if (expected.data == NULL) {
-        fprintf(
-            stderr,
-            "failed to open previous results '%s' for diff\n",
-            expected_file);
+        fprintf(stderr, "failed to open previous results '%s' for diff\n",
+                expected_file);
         goto out;
     }
 
     ret = data_buffer_compare(actual, expected);
     if (ret != 0) {
-        fprintf(
-            stderr,
-            "actual results '%s' does not match expected results '%s'\n",
-            actual_file,
-            expected_file);
+        fprintf(stderr,
+                "actual results '%s' does not match expected results '%s'\n",
+                actual_file, expected_file);
     } else {
         fprintf(stderr, "actual results match expected results\n");
     }
@@ -322,7 +308,9 @@ out:
     return ret;
 }
 
-int main(int argc, char** argv) {
+int
+main(int argc, char **argv)
+{
     /* Parse args and validate modules. */
     int ret = parse_args(argc, argv);
     if (ret != 0)
@@ -341,7 +329,7 @@ int main(int argc, char** argv) {
 
     /* Run the regression tests. */
     ret = 1;
-    FILE* results = fopen(g_output, "w");
+    FILE *results = fopen(g_output, "w");
     if (results == NULL) {
         fprintf(stderr, "Failed to open the output file\n");
         goto out;

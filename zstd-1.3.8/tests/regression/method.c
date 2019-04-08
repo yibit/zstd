@@ -18,9 +18,11 @@
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
-static char const* g_zstdcli = NULL;
+static char const *g_zstdcli = NULL;
 
-void method_set_zstdcli(char const* zstdcli) {
+void
+method_set_zstdcli(char const *zstdcli)
+{
     g_zstdcli = zstdcli;
 }
 
@@ -32,18 +34,20 @@ void method_set_zstdcli(char const* zstdcli) {
  *     buffer_state_t* state = container_of(base, buffer_state_t, base);
  */
 #define container_of(ptr, type, member) \
-    ((type*)(ptr == NULL ? NULL : (char*)(ptr)-offsetof(type, member)))
+    ((type *)(ptr == NULL ? NULL : (char *)(ptr)-offsetof(type, member)))
 
 /** State to reuse the same buffers between compression calls. */
 typedef struct {
     method_state_t base;
-    data_buffers_t inputs; /**< The input buffer for each file. */
-    data_buffer_t dictionary; /**< The dictionary. */
-    data_buffer_t compressed; /**< The compressed data buffer. */
+    data_buffers_t inputs;      /**< The input buffer for each file. */
+    data_buffer_t dictionary;   /**< The dictionary. */
+    data_buffer_t compressed;   /**< The compressed data buffer. */
     data_buffer_t decompressed; /**< The decompressed data buffer. */
 } buffer_state_t;
 
-static size_t buffers_max_size(data_buffers_t buffers) {
+static size_t
+buffers_max_size(data_buffers_t buffers)
+{
     size_t max = 0;
     for (size_t i = 0; i < buffers.size; ++i) {
         if (buffers.buffers[i].size > max)
@@ -52,8 +56,10 @@ static size_t buffers_max_size(data_buffers_t buffers) {
     return max;
 }
 
-static method_state_t* buffer_state_create(data_t const* data) {
-    buffer_state_t* state = (buffer_state_t*)calloc(1, sizeof(buffer_state_t));
+static method_state_t *
+buffer_state_create(data_t const *data)
+{
+    buffer_state_t *state = (buffer_state_t *)calloc(1, sizeof(buffer_state_t));
     if (state == NULL)
         return NULL;
     state->base.data = data;
@@ -65,16 +71,18 @@ static method_state_t* buffer_state_create(data_t const* data) {
     return &state->base;
 }
 
-static void buffer_state_destroy(method_state_t* base) {
+static void
+buffer_state_destroy(method_state_t *base)
+{
     if (base == NULL)
         return;
-    buffer_state_t* state = container_of(base, buffer_state_t, base);
+    buffer_state_t *state = container_of(base, buffer_state_t, base);
     free(state);
 }
 
-static int buffer_state_bad(
-    buffer_state_t const* state,
-    config_t const* config) {
+static int
+buffer_state_bad(buffer_state_t const *state, config_t const *config)
+{
     if (state == NULL) {
         fprintf(stderr, "buffer_state_t is NULL\n");
         return 1;
@@ -91,8 +99,10 @@ static int buffer_state_bad(
     return 0;
 }
 
-static result_t simple_compress(method_state_t* base, config_t const* config) {
-    buffer_state_t* state = container_of(base, buffer_state_t, base);
+static result_t
+simple_compress(method_state_t *base, config_t const *config)
+{
+    buffer_state_t *state = container_of(base, buffer_state_t, base);
 
     if (buffer_state_bad(state, config))
         return result_error(result_error_system_error);
@@ -114,20 +124,15 @@ static result_t simple_compress(method_state_t* base, config_t const* config) {
     data_buffer_t const input = state->inputs.buffers[0];
 
     /* Compress, decompress, and check the result. */
-    state->compressed.size = ZSTD_compress(
-        state->compressed.data,
-        state->compressed.capacity,
-        input.data,
-        input.size,
-        level);
+    state->compressed.size =
+        ZSTD_compress(state->compressed.data, state->compressed.capacity,
+                      input.data, input.size, level);
     if (ZSTD_isError(state->compressed.size))
         return result_error(result_error_compression_error);
 
-    state->decompressed.size = ZSTD_decompress(
-        state->decompressed.data,
-        state->decompressed.capacity,
-        state->compressed.data,
-        state->compressed.size);
+    state->decompressed.size =
+        ZSTD_decompress(state->decompressed.data, state->decompressed.capacity,
+                        state->compressed.data, state->compressed.size);
     if (ZSTD_isError(state->decompressed.size))
         return result_error(result_error_decompression_error);
     if (data_buffer_compare(input, state->decompressed))
@@ -138,10 +143,10 @@ static result_t simple_compress(method_state_t* base, config_t const* config) {
     return result_data(data);
 }
 
-static result_t compress_cctx_compress(
-    method_state_t* base,
-    config_t const* config) {
-    buffer_state_t* state = container_of(base, buffer_state_t, base);
+static result_t
+compress_cctx_compress(method_state_t *base, config_t const *config)
+{
+    buffer_state_t *state = container_of(base, buffer_state_t, base);
 
     if (buffer_state_bad(state, config))
         return result_error(result_error_system_error);
@@ -154,8 +159,8 @@ static result_t compress_cctx_compress(
 
     int const level = config_get_level(config);
 
-    ZSTD_CCtx* cctx = ZSTD_createCCtx();
-    ZSTD_DCtx* dctx = ZSTD_createDCtx();
+    ZSTD_CCtx *cctx = ZSTD_createCCtx();
+    ZSTD_DCtx *dctx = ZSTD_createDCtx();
     if (cctx == NULL || dctx == NULL) {
         fprintf(stderr, "context creation failed\n");
         return result_error(result_error_system_error);
@@ -170,32 +175,18 @@ static result_t compress_cctx_compress(
 
         if (level == CONFIG_NO_LEVEL)
             state->compressed.size = ZSTD_compress_advanced(
-                cctx,
-                state->compressed.data,
-                state->compressed.capacity,
-                input.data,
-                input.size,
-                state->dictionary.data,
-                state->dictionary.size,
-                params);
+                cctx, state->compressed.data, state->compressed.capacity,
+                input.data, input.size, state->dictionary.data,
+                state->dictionary.size, params);
         else if (config->use_dictionary)
             state->compressed.size = ZSTD_compress_usingDict(
-                cctx,
-                state->compressed.data,
-                state->compressed.capacity,
-                input.data,
-                input.size,
-                state->dictionary.data,
-                state->dictionary.size,
-                level);
+                cctx, state->compressed.data, state->compressed.capacity,
+                input.data, input.size, state->dictionary.data,
+                state->dictionary.size, level);
         else
             state->compressed.size = ZSTD_compressCCtx(
-                cctx,
-                state->compressed.data,
-                state->compressed.capacity,
-                input.data,
-                input.size,
-                level);
+                cctx, state->compressed.data, state->compressed.capacity,
+                input.data, input.size, level);
 
         if (ZSTD_isError(state->compressed.size)) {
             result = result_error(result_error_compression_error);
@@ -204,20 +195,13 @@ static result_t compress_cctx_compress(
 
         if (config->use_dictionary)
             state->decompressed.size = ZSTD_decompress_usingDict(
-                dctx,
-                state->decompressed.data,
-                state->decompressed.capacity,
-                state->compressed.data,
-                state->compressed.size,
-                state->dictionary.data,
-                state->dictionary.size);
+                dctx, state->decompressed.data, state->decompressed.capacity,
+                state->compressed.data, state->compressed.size,
+                state->dictionary.data, state->dictionary.size);
         else
             state->decompressed.size = ZSTD_decompressDCtx(
-                dctx,
-                state->decompressed.data,
-                state->decompressed.capacity,
-                state->compressed.data,
-                state->compressed.size);
+                dctx, state->decompressed.data, state->decompressed.capacity,
+                state->compressed.data, state->compressed.size);
         if (ZSTD_isError(state->decompressed.size)) {
             result = result_error(result_error_decompression_error);
             goto out;
@@ -238,19 +222,25 @@ out:
 }
 
 /** Generic state creation function. */
-static method_state_t* method_state_create(data_t const* data) {
-    method_state_t* state = (method_state_t*)malloc(sizeof(method_state_t));
+static method_state_t *
+method_state_create(data_t const *data)
+{
+    method_state_t *state = (method_state_t *)malloc(sizeof(method_state_t));
     if (state == NULL)
         return NULL;
     state->data = data;
     return state;
 }
 
-static void method_state_destroy(method_state_t* state) {
+static void
+method_state_destroy(method_state_t *state)
+{
     free(state);
 }
 
-static result_t cli_compress(method_state_t* state, config_t const* config) {
+static result_t
+cli_compress(method_state_t *state, config_t const *config)
+{
     if (config->cli_args == NULL)
         return result_error(result_error_skip);
 
@@ -264,21 +254,16 @@ static result_t cli_compress(method_state_t* state, config_t const* config) {
     /* '<zstd>' -cqr <args> [-D '<dict>'] '<file/dir>' */
     char cmd[1024];
     size_t const cmd_size = snprintf(
-        cmd,
-        sizeof(cmd),
-        "'%s' -cqr %s %s%s%s %s '%s'",
-        g_zstdcli,
-        config->cli_args,
-        config->use_dictionary ? "-D '" : "",
+        cmd, sizeof(cmd), "'%s' -cqr %s %s%s%s %s '%s'", g_zstdcli,
+        config->cli_args, config->use_dictionary ? "-D '" : "",
         config->use_dictionary ? state->data->dict.path : "",
         config->use_dictionary ? "'" : "",
-        config->no_pledged_src_size ? "<" : "",
-        state->data->data.path);
+        config->no_pledged_src_size ? "<" : "", state->data->data.path);
     if (cmd_size >= sizeof(cmd)) {
         fprintf(stderr, "command too large: %s\n", cmd);
         return result_error(result_error_system_error);
     }
-    FILE* zstd = popen(cmd, "r");
+    FILE *zstd = popen(cmd, "r");
     if (zstd == NULL) {
         fprintf(stderr, "failed to popen command: %s\n", cmd);
         return result_error(result_error_system_error);
@@ -301,10 +286,9 @@ static result_t cli_compress(method_state_t* state, config_t const* config) {
     return result_data(data);
 }
 
-static int advanced_config(
-    ZSTD_CCtx* cctx,
-    buffer_state_t* state,
-    config_t const* config) {
+static int
+advanced_config(ZSTD_CCtx *cctx, buffer_state_t *state, config_t const *config)
+{
     ZSTD_CCtx_reset(cctx, ZSTD_reset_session_and_parameters);
     for (size_t p = 0; p < config->param_values.size; ++p) {
         param_value_t const pv = config->param_values.data[p];
@@ -313,24 +297,25 @@ static int advanced_config(
         }
     }
     if (config->use_dictionary) {
-        if (ZSTD_isError(ZSTD_CCtx_loadDictionary(
-                cctx, state->dictionary.data, state->dictionary.size))) {
+        if (ZSTD_isError(ZSTD_CCtx_loadDictionary(cctx, state->dictionary.data,
+                                                  state->dictionary.size))) {
             return 1;
         }
     }
     return 0;
 }
 
-static result_t advanced_one_pass_compress_output_adjustment(
-    method_state_t* base,
-    config_t const* config,
-    size_t const subtract) {
-    buffer_state_t* state = container_of(base, buffer_state_t, base);
+static result_t
+advanced_one_pass_compress_output_adjustment(method_state_t *base,
+                                             config_t const *config,
+                                             size_t const subtract)
+{
+    buffer_state_t *state = container_of(base, buffer_state_t, base);
 
     if (buffer_state_bad(state, config))
         return result_error(result_error_system_error);
 
-    ZSTD_CCtx* cctx = ZSTD_createCCtx();
+    ZSTD_CCtx *cctx = ZSTD_createCCtx();
     result_t result;
 
     if (!cctx || advanced_config(cctx, state, config)) {
@@ -349,11 +334,8 @@ static result_t advanced_one_pass_compress_output_adjustment(
             }
         }
         size_t const size = ZSTD_compress2(
-            cctx,
-            state->compressed.data,
-            ZSTD_compressBound(input.size) - subtract,
-            input.data,
-            input.size);
+            cctx, state->compressed.data,
+            ZSTD_compressBound(input.size) - subtract, input.data, input.size);
         if (ZSTD_isError(size)) {
             result = result_error(result_error_compression_error);
             goto out;
@@ -367,27 +349,28 @@ out:
     return result;
 }
 
-static result_t advanced_one_pass_compress(
-    method_state_t* base,
-    config_t const* config) {
-  return advanced_one_pass_compress_output_adjustment(base, config, 0);
+static result_t
+advanced_one_pass_compress(method_state_t *base, config_t const *config)
+{
+    return advanced_one_pass_compress_output_adjustment(base, config, 0);
 }
 
-static result_t advanced_one_pass_compress_small_output(
-    method_state_t* base,
-    config_t const* config) {
-  return advanced_one_pass_compress_output_adjustment(base, config, 1);
+static result_t
+advanced_one_pass_compress_small_output(method_state_t *base,
+                                        config_t const *config)
+{
+    return advanced_one_pass_compress_output_adjustment(base, config, 1);
 }
 
-static result_t advanced_streaming_compress(
-    method_state_t* base,
-    config_t const* config) {
-    buffer_state_t* state = container_of(base, buffer_state_t, base);
+static result_t
+advanced_streaming_compress(method_state_t *base, config_t const *config)
+{
+    buffer_state_t *state = container_of(base, buffer_state_t, base);
 
     if (buffer_state_bad(state, config))
         return result_error(result_error_system_error);
 
-    ZSTD_CCtx* cctx = ZSTD_createCCtx();
+    ZSTD_CCtx *cctx = ZSTD_createCCtx();
     result_t result;
 
     if (!cctx || advanced_config(cctx, state, config)) {
@@ -432,10 +415,10 @@ out:
     return result;
 }
 
-static result_t old_streaming_compress(
-    method_state_t* base,
-    config_t const* config) {
-    buffer_state_t* state = container_of(base, buffer_state_t, base);
+static result_t
+old_streaming_compress(method_state_t *base, config_t const *config)
+{
+    buffer_state_t *state = container_of(base, buffer_state_t, base);
 
     if (buffer_state_bad(state, config))
         return result_error(result_error_system_error);
@@ -444,7 +427,7 @@ static result_t old_streaming_compress(
     if (level == CONFIG_NO_LEVEL)
         return result_error(result_error_skip);
 
-    ZSTD_CStream* zcs = ZSTD_createCStream();
+    ZSTD_CStream *zcs = ZSTD_createCStream();
     result_t result;
     if (zcs == NULL) {
         result = result_error(result_error_compression_error);
@@ -452,8 +435,8 @@ static result_t old_streaming_compress(
     }
     size_t zret;
     if (config->use_dictionary) {
-        zret = ZSTD_initCStream_usingDict(
-            zcs, state->dictionary.data, state->dictionary.size, level);
+        zret = ZSTD_initCStream_usingDict(zcs, state->dictionary.data,
+                                          state->dictionary.size, level);
     } else {
         zret = ZSTD_initCStream(zcs, level);
     }
@@ -465,10 +448,10 @@ static result_t old_streaming_compress(
     result_data_t data = {.total_size = 0};
     for (size_t i = 0; i < state->inputs.size; ++i) {
         data_buffer_t input = state->inputs.buffers[i];
-        zret = ZSTD_resetCStream(
-            zcs,
-            config->no_pledged_src_size ? ZSTD_CONTENTSIZE_UNKNOWN
-                                        : input.size);
+        zret = ZSTD_resetCStream(zcs,
+                                 config->no_pledged_src_size
+                                     ? ZSTD_CONTENTSIZE_UNKNOWN
+                                     : input.size);
         if (ZSTD_isError(zret)) {
             result = result_error(result_error_compression_error);
             goto out;
@@ -552,7 +535,7 @@ method_t const cli = {
     .destroy = method_state_destroy,
 };
 
-static method_t const* g_methods[] = {
+static method_t const *g_methods[] = {
     &simple,
     &compress_cctx,
     &cli,
@@ -563,4 +546,4 @@ static method_t const* g_methods[] = {
     NULL,
 };
 
-method_t const* const* methods = g_methods;
+method_t const *const *methods = g_methods;

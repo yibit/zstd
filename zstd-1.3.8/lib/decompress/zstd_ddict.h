@@ -8,16 +8,14 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
-
 #ifndef ZSTD_DDICT_H
 #define ZSTD_DDICT_H
 
 /*-*******************************************************
  *  Dependencies
  *********************************************************/
-#include <stddef.h>   /* size_t */
-#include "zstd.h"     /* ZSTD_DDict, and several public functions */
-
+#include <stddef.h> /* size_t */
+#include "zstd.h"   /* ZSTD_DDict, and several public functions */
 
 /*-*******************************************************
  *  Interface
@@ -34,11 +32,9 @@
  * ZSTD_getDictID_fromDict()
  */
 
-const void* ZSTD_DDict_dictContent(const ZSTD_DDict* ddict);
-size_t ZSTD_DDict_dictSize(const ZSTD_DDict* ddict);
+const void *ZSTD_DDict_dictContent(const ZSTD_DDict *ddict);
+size_t ZSTD_DDict_dictSize(const ZSTD_DDict *ddict);
 
-void ZSTD_copyDDictParameters(ZSTD_DCtx* dctx, const ZSTD_DDict* ddict);
-
-
+void ZSTD_copyDDictParameters(ZSTD_DCtx *dctx, const ZSTD_DDict *ddict);
 
 #endif /* ZSTD_DDICT_H */

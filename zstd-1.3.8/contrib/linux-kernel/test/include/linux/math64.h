@@ -3,9 +3,10 @@
 
 #include <stdint.h>
 
-static uint64_t div_u64(uint64_t n, uint32_t d)
+static uint64_t
+div_u64(uint64_t n, uint32_t d)
 {
-  return n / d;
+    return n / d;
 }
 
 #endif

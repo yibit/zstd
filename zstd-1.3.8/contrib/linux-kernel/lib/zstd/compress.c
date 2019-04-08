@@ -440,7 +440,7 @@ size_t ZSTD_noCompressBlock(void *dst, size_t dstCapacity, const void *src, size
 
 static size_t ZSTD_noCompressLiterals(void *dst, size_t dstCapacity, const void *src, size_t srcSize)
 {
-	BYTE *const ostart = (BYTE * const)dst;
+	BYTE *const ostart = (BYTE * const) dst;
 	U32 const flSize = 1 + (srcSize > 31) + (srcSize > 4095);
 
 	if (srcSize + flSize > dstCapacity)
@@ -459,7 +459,7 @@ static size_t ZSTD_noCompressLiterals(void *dst, size_t dstCapacity, const void 
 
 static size_t ZSTD_compressRleLiteralsBlock(void *dst, size_t dstCapacity, const void *src, size_t srcSize)
 {
-	BYTE *const ostart = (BYTE * const)dst;
+	BYTE *const ostart = (BYTE * const) dst;
 	U32 const flSize = 1 + (srcSize > 31) + (srcSize > 4095);
 
 	(void)dstCapacity; /* dstCapacity already guaranteed to be >=4, hence large enough */
@@ -2001,7 +2001,7 @@ void ZSTD_compressBlock_lazy_generic(ZSTD_CCtx *ctx, const void *src, size_t src
 		/* catch up */
 		if (offset) {
 			while ((start > anchor) && (start > base + offset - ZSTD_REP_MOVE) &&
-			       (start[-1] == (start-offset+ZSTD_REP_MOVE)[-1])) /* only search for offset within prefix */
+			       (start[-1] == (start - offset + ZSTD_REP_MOVE)[-1])) /* only search for offset within prefix */
 			{
 				start--;
 				matchLength++;
@@ -2011,12 +2011,11 @@ void ZSTD_compressBlock_lazy_generic(ZSTD_CCtx *ctx, const void *src, size_t src
 		}
 
 	/* store sequence */
-_storeSequence:
-		{
-			size_t const litLength = start - anchor;
-			ZSTD_storeSeq(seqStorePtr, litLength, anchor, (U32)offset, matchLength - MINMATCH);
-			anchor = ip = start + matchLength;
-		}
+	_storeSequence : {
+		size_t const litLength = start - anchor;
+		ZSTD_storeSeq(seqStorePtr, litLength, anchor, (U32)offset, matchLength - MINMATCH);
+		anchor = ip = start + matchLength;
+	}
 
 		/* check immediate repcode */
 		while ((ip <= ilimit) && ((offset_2 > 0) & (ZSTD_read32(ip) == ZSTD_read32(ip - offset_2)))) {
@@ -2662,9 +2661,9 @@ static size_t ZSTD_loadZstdDictionary(ZSTD_CCtx *cctx, const void *dict, size_t 
 			return ERROR(dictionary_corrupted);
 		/* Every match length code must have non-zero probability */
 		CHECK_F(ZSTD_checkDictNCount(matchlengthNCount, matchlengthMaxValue, MaxML));
-		CHECK_E(
-		    FSE_buildCTable_wksp(cctx->matchlengthCTable, matchlengthNCount, matchlengthMaxValue, matchlengthLog, cctx->tmpCounters, sizeof(cctx->tmpCounters)),
-		    dictionary_corrupted);
+		CHECK_E(FSE_buildCTable_wksp(cctx->matchlengthCTable, matchlengthNCount, matchlengthMaxValue, matchlengthLog, cctx->tmpCounters,
+					     sizeof(cctx->tmpCounters)),
+			dictionary_corrupted);
 		dictPtr += matchlengthHeaderSize;
 	}
 
@@ -2678,8 +2677,9 @@ static size_t ZSTD_loadZstdDictionary(ZSTD_CCtx *cctx, const void *dict, size_t 
 			return ERROR(dictionary_corrupted);
 		/* Every literal length code must have non-zero probability */
 		CHECK_F(ZSTD_checkDictNCount(litlengthNCount, litlengthMaxValue, MaxLL));
-		CHECK_E(FSE_buildCTable_wksp(cctx->litlengthCTable, litlengthNCount, litlengthMaxValue, litlengthLog, cctx->tmpCounters, sizeof(cctx->tmpCounters)),
-			dictionary_corrupted);
+		CHECK_E(
+		    FSE_buildCTable_wksp(cctx->litlengthCTable, litlengthNCount, litlengthMaxValue, litlengthLog, cctx->tmpCounters, sizeof(cctx->tmpCounters)),
+		    dictionary_corrupted);
 		dictPtr += litlengthHeaderSize;
 	}
 

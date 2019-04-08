@@ -15,30 +15,29 @@
 #include <stdint.h>
 
 typedef enum {
-    data_type_file = 1,  /**< This data is a file. *.zst */
-    data_type_dir = 2,   /**< This data is a directory. *.tar.zst */
+    data_type_file = 1, /**< This data is a file. *.zst */
+    data_type_dir = 2,  /**< This data is a directory. *.tar.zst */
 } data_type_t;
 
 typedef struct {
-    char const* url;   /**< Where to get this resource. */
+    char const *url;   /**< Where to get this resource. */
     uint64_t xxhash64; /**< Hash of the url contents. */
-    char const* path;  /**< The path of the unpacked resource (derived). */
+    char const *path;  /**< The path of the unpacked resource (derived). */
 } data_resource_t;
 
 typedef struct {
     data_resource_t data;
     data_resource_t dict;
-    data_type_t type;  /**< The type of the data. */
-    char const* name;  /**< The logical name of the data (no extension). */
+    data_type_t type; /**< The type of the data. */
+    char const *name; /**< The logical name of the data (no extension). */
 } data_t;
 
 /**
  * The NULL-terminated list of data objects.
  */
-extern data_t const* const* data;
+extern data_t const *const *data;
 
-
-int data_has_dict(data_t const* data);
+int data_has_dict(data_t const *data);
 
 /**
  * Initializes the data module and downloads the data necessary.
@@ -50,7 +49,7 @@ int data_has_dict(data_t const* data);
  *
  * @returns 0 on success.
  */
-int data_init(char const* dir);
+int data_init(char const *dir);
 
 /**
  * Must be called at exit to free resources allocated by data_init().
@@ -58,7 +57,7 @@ int data_init(char const* dir);
 void data_finish(void);
 
 typedef struct {
-    uint8_t* data;
+    uint8_t *data;
     size_t size;
     size_t capacity;
 } data_buffer_t;
@@ -69,21 +68,21 @@ typedef struct {
  *
  * @returns The buffer, which is NULL on failure.
  */
-data_buffer_t data_buffer_get_data(data_t const* data);
+data_buffer_t data_buffer_get_data(data_t const *data);
 
 /**
  * Read the dictionary that the data points to into a buffer.
  *
  * @returns The buffer, which is NULL on failure.
  */
-data_buffer_t data_buffer_get_dict(data_t const* data);
+data_buffer_t data_buffer_get_dict(data_t const *data);
 
 /**
  * Read the contents of filename into a buffer.
  *
  * @returns The buffer, which is NULL on failure.
  */
-data_buffer_t data_buffer_read(char const* filename);
+data_buffer_t data_buffer_read(char const *filename);
 
 /**
  * Create a buffer with the specified capacity.
@@ -103,8 +102,8 @@ int data_buffer_compare(data_buffer_t buffer1, data_buffer_t buffer2);
 void data_buffer_free(data_buffer_t buffer);
 
 typedef struct {
-    char* buffer;
-    char const** filenames;
+    char *buffer;
+    char const **filenames;
     unsigned size;
 } data_filenames_t;
 
@@ -115,7 +114,7 @@ typedef struct {
  *
  * @returns The list of filenames, which has size 0 and NULL pointers on error.
  */
-data_filenames_t data_filenames_get(data_t const* data);
+data_filenames_t data_filenames_get(data_t const *data);
 
 /**
  * Frees the filenames table.
@@ -123,14 +122,14 @@ data_filenames_t data_filenames_get(data_t const* data);
 void data_filenames_free(data_filenames_t filenames);
 
 typedef struct {
-    data_buffer_t const* buffers;
+    data_buffer_t const *buffers;
     size_t size;
 } data_buffers_t;
 
 /**
  * @returns a list of buffers for every file in data. It is zero sized on error.
  */
-data_buffers_t data_buffers_get(data_t const* data);
+data_buffers_t data_buffers_get(data_t const *data);
 
 /**
  * Frees the data buffers.

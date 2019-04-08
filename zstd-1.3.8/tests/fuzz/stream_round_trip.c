@@ -23,14 +23,15 @@
 
 ZSTD_CCtx *cctx = NULL;
 static ZSTD_DCtx *dctx = NULL;
-static uint8_t* cBuf = NULL;
-static uint8_t* rBuf = NULL;
+static uint8_t *cBuf = NULL;
+static uint8_t *rBuf = NULL;
 static size_t bufSize = 0;
 static uint32_t seed;
 
-static ZSTD_outBuffer makeOutBuffer(uint8_t *dst, size_t capacity)
+static ZSTD_outBuffer
+makeOutBuffer(uint8_t *dst, size_t capacity)
 {
-    ZSTD_outBuffer buffer = { dst, 0, 0 };
+    ZSTD_outBuffer buffer = {dst, 0, 0};
 
     FUZZ_ASSERT(capacity > 0);
     buffer.size = (FUZZ_rand(&seed) % capacity) + 1;
@@ -39,9 +40,10 @@ static ZSTD_outBuffer makeOutBuffer(uint8_t *dst, size_t capacity)
     return buffer;
 }
 
-static ZSTD_inBuffer makeInBuffer(const uint8_t **src, size_t *size)
+static ZSTD_inBuffer
+makeInBuffer(const uint8_t **src, size_t *size)
 {
-    ZSTD_inBuffer buffer = { *src, 0, 0 };
+    ZSTD_inBuffer buffer = {*src, 0, 0};
 
     FUZZ_ASSERT(*size > 0);
     buffer.size = (FUZZ_rand(&seed) % *size) + 1;
@@ -52,8 +54,8 @@ static ZSTD_inBuffer makeInBuffer(const uint8_t **src, size_t *size)
     return buffer;
 }
 
-static size_t compress(uint8_t *dst, size_t capacity,
-                       const uint8_t *src, size_t srcSize)
+static size_t
+compress(uint8_t *dst, size_t capacity, const uint8_t *src, size_t srcSize)
 {
     size_t dstSize = 0;
     ZSTD_CCtx_reset(cctx, ZSTD_reset_session_only);
@@ -66,39 +68,39 @@ static size_t compress(uint8_t *dst, size_t capacity,
         while (in.pos < in.size) {
             ZSTD_outBuffer out = makeOutBuffer(dst, capacity);
             /* Previous action finished, pick a new mode. */
-            if (mode == -1) mode = FUZZ_rand(&seed) % 10;
+            if (mode == -1)
+                mode = FUZZ_rand(&seed) % 10;
             switch (mode) {
-                case 0: /* fall-though */
-                case 1: /* fall-though */
-                case 2: {
-                    size_t const ret =
-                        ZSTD_compressStream2(cctx, &out, &in, ZSTD_e_flush);
-                    FUZZ_ZASSERT(ret);
-                    if (ret == 0)
-                        mode = -1;
-                    break;
-                }
-                case 3: {
-                    size_t ret =
-                        ZSTD_compressStream2(cctx, &out, &in, ZSTD_e_end);
-                    FUZZ_ZASSERT(ret);
-                    /* Reset the compressor when the frame is finished */
-                    if (ret == 0) {
-                        ZSTD_CCtx_reset(cctx, ZSTD_reset_session_only);
-                        if ((FUZZ_rand(&seed) & 7) == 0) {
-                            size_t const remaining = in.size - in.pos;
-                            FUZZ_setRandomParameters(cctx, remaining, &seed);
-                        }
-                        mode = -1;
+            case 0: /* fall-though */
+            case 1: /* fall-though */
+            case 2: {
+                size_t const ret =
+                    ZSTD_compressStream2(cctx, &out, &in, ZSTD_e_flush);
+                FUZZ_ZASSERT(ret);
+                if (ret == 0)
+                    mode = -1;
+                break;
+            }
+            case 3: {
+                size_t ret = ZSTD_compressStream2(cctx, &out, &in, ZSTD_e_end);
+                FUZZ_ZASSERT(ret);
+                /* Reset the compressor when the frame is finished */
+                if (ret == 0) {
+                    ZSTD_CCtx_reset(cctx, ZSTD_reset_session_only);
+                    if ((FUZZ_rand(&seed) & 7) == 0) {
+                        size_t const remaining = in.size - in.pos;
+                        FUZZ_setRandomParameters(cctx, remaining, &seed);
                     }
-                    break;
-                }
-                default: {
-                    size_t const ret =
-                        ZSTD_compressStream2(cctx, &out, &in, ZSTD_e_continue);
-                    FUZZ_ZASSERT(ret);
                     mode = -1;
                 }
+                break;
+            }
+            default: {
+                size_t const ret =
+                    ZSTD_compressStream2(cctx, &out, &in, ZSTD_e_continue);
+                FUZZ_ZASSERT(ret);
+                mode = -1;
+            }
             }
             dst += out.pos;
             dstSize += out.pos;
@@ -120,7 +122,8 @@ static size_t compress(uint8_t *dst, size_t capacity,
     return dstSize;
 }
 
-int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
+int
+LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
 {
     size_t neededBufSize;
 
@@ -131,8 +134,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
     if (neededBufSize > bufSize) {
         free(cBuf);
         free(rBuf);
-        cBuf = (uint8_t*)malloc(neededBufSize);
-        rBuf = (uint8_t*)malloc(neededBufSize);
+        cBuf = (uint8_t *)malloc(neededBufSize);
+        rBuf = (uint8_t *)malloc(neededBufSize);
         bufSize = neededBufSize;
         FUZZ_ASSERT(cBuf && rBuf);
     }
@@ -155,8 +158,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
     }
 
 #ifndef STATEFUL_FUZZING
-    ZSTD_freeCCtx(cctx); cctx = NULL;
-    ZSTD_freeDCtx(dctx); dctx = NULL;
+    ZSTD_freeCCtx(cctx);
+    cctx = NULL;
+    ZSTD_freeDCtx(dctx);
+    dctx = NULL;
 #endif
     return 0;
 }

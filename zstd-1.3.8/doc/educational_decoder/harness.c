@@ -25,7 +25,9 @@ u8 *input;
 u8 *output;
 u8 *dict;
 
-size_t read_file(const char *path, u8 **ptr) {
+size_t
+read_file(const char *path, u8 **ptr)
+{
     FILE *f = fopen(path, "rb");
     if (!f) {
         fprintf(stderr, "failed to open file %s\n", path);
@@ -57,7 +59,9 @@ size_t read_file(const char *path, u8 **ptr) {
     return pos;
 }
 
-void write_file(const char *path, const u8 *ptr, size_t size) {
+void
+write_file(const char *path, const u8 *ptr, size_t size)
+{
     FILE *f = fopen(path, "wb");
 
     size_t written = 0;
@@ -72,7 +76,9 @@ void write_file(const char *path, const u8 *ptr, size_t size) {
     fclose(f);
 }
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv)
+{
     if (argc < 3) {
         fprintf(stderr, "usage: %s <file.zst> <out_path> [dictionary]\n",
                 argv[0]);
@@ -89,10 +95,11 @@ int main(int argc, char **argv) {
     size_t decompressed_size = ZSTD_get_decompressed_size(input, input_size);
     if (decompressed_size == (size_t)-1) {
         decompressed_size = MAX_COMPRESSION_RATIO * input_size;
-        fprintf(stderr, "WARNING: Compressed data does not contain "
-                        "decompressed size, going to assume the compression "
-                        "ratio is at most %d (decompressed size of at most "
-                        "%zu)\n",
+        fprintf(stderr,
+                "WARNING: Compressed data does not contain "
+                "decompressed size, going to assume the compression "
+                "ratio is at most %d (decompressed size of at most "
+                "%zu)\n",
                 MAX_COMPRESSION_RATIO, decompressed_size);
     }
     if (decompressed_size > MAX_OUTPUT_SIZE) {
@@ -106,13 +113,12 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    dictionary_t* const parsed_dict = create_dictionary();
+    dictionary_t *const parsed_dict = create_dictionary();
     if (dict) {
         parse_dictionary(parsed_dict, dict, dict_size);
     }
-    size_t decompressed =
-        ZSTD_decompress_with_dict(output, decompressed_size,
-                                  input, input_size, parsed_dict);
+    size_t decompressed = ZSTD_decompress_with_dict(
+        output, decompressed_size, input, input_size, parsed_dict);
 
     free_dictionary(parsed_dict);
 

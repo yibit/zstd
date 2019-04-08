@@ -19,10 +19,11 @@
 #include "zstd.h"
 
 static ZSTD_DCtx *dctx = NULL;
-static void* rBuf = NULL;
+static void *rBuf = NULL;
 static size_t bufSize = 0;
 
-int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
+int
+LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
 {
     size_t neededBufSize;
 
@@ -43,7 +44,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
     ZSTD_decompressDCtx(dctx, rBuf, neededBufSize, src, size);
 
 #ifndef STATEFUL_FUZZING
-    ZSTD_freeDCtx(dctx); dctx = NULL;
+    ZSTD_freeDCtx(dctx);
+    dctx = NULL;
 #endif
     return 0;
 }

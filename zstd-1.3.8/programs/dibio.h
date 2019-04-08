@@ -14,13 +14,11 @@
 #ifndef DIBIO_H_003
 #define DIBIO_H_003
 
-
 /*-*************************************
 *  Dependencies
 ***************************************/
 #define ZDICT_STATIC_LINKING_ONLY
-#include "zdict.h"     /* ZDICT_params_t */
-
+#include "zdict.h" /* ZDICT_params_t */
 
 /*-*************************************
 *  Public functions
@@ -28,12 +26,14 @@
 /*! DiB_trainFromFiles() :
     Train a dictionary from a set of files provided by `fileNamesTable`.
     Resulting dictionary is written into file `dictFileName`.
-    `parameters` is optional and can be provided with values set to 0, meaning "default".
+    `parameters` is optional and can be provided with values set to 0, meaning
+   "default".
     @return : 0 == ok. Any other : error.
 */
-int DiB_trainFromFiles(const char* dictFileName, unsigned maxDictSize,
-                       const char** fileNamesTable, unsigned nbFiles, size_t chunkSize,
-                       ZDICT_legacy_params_t* params, ZDICT_cover_params_t* coverParams,
-                       ZDICT_fastCover_params_t* fastCoverParams, int optimize);
+int DiB_trainFromFiles(const char *dictFileName, unsigned maxDictSize,
+                       const char **fileNamesTable, unsigned nbFiles,
+                       size_t chunkSize, ZDICT_legacy_params_t *params,
+                       ZDICT_cover_params_t *coverParams,
+                       ZDICT_fastCover_params_t *fastCoverParams, int optimize);
 
 #endif

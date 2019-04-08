@@ -525,7 +525,7 @@ static void HUF_encodeSymbol(BIT_CStream_t *bitCPtr, U32 symbol, const HUF_CElt 
 
 size_t HUF_compressBound(size_t size) { return HUF_COMPRESSBOUND(size); }
 
-#define HUF_FLUSHBITS(s)  BIT_flushBits(s)
+#define HUF_FLUSHBITS(s) BIT_flushBits(s)
 
 #define HUF_FLUSHBITS_1(stream)                                            \
 	if (sizeof((stream)->bitContainer) * 8 < HUF_TABLELOG_MAX * 2 + 7) \

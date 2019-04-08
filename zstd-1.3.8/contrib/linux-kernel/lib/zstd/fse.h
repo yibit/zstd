@@ -187,7 +187,8 @@ typedef unsigned FSE_DTable; /* don't allocate that. It's just a way to be more 
 /*! FSE_buildDTable():
 	Builds 'dt', which must be already allocated, using FSE_createDTable().
 	return : 0, or an errorCode, which can be tested using FSE_isError() */
-FSE_PUBLIC_API size_t FSE_buildDTable_wksp(FSE_DTable *dt, const short *normalizedCounter, unsigned maxSymbolValue, unsigned tableLog, void *workspace, size_t workspaceSize);
+FSE_PUBLIC_API size_t FSE_buildDTable_wksp(FSE_DTable *dt, const short *normalizedCounter, unsigned maxSymbolValue, unsigned tableLog, void *workspace,
+					   size_t workspaceSize);
 
 /*! FSE_decompress_usingDTable():
 	Decompress compressed source `cSrc` of size `cSrcSize` using `dt`

@@ -2,7 +2,7 @@
 #include <stdlib.h> /* malloc, free, qsort */
 #include <string.h> /* memset */
 #include <time.h>   /* clock */
-#include "mem.h" /* read */
+#include "mem.h"    /* read */
 #include "pool.h"
 #include "threading.h"
 #include "zstd_internal.h" /* includes zstd.h */
@@ -20,37 +20,38 @@
  * compiled with multithreaded support.
  */
 typedef struct COVER_best_s {
-  ZSTD_pthread_mutex_t mutex;
-  ZSTD_pthread_cond_t cond;
-  size_t liveJobs;
-  void *dict;
-  size_t dictSize;
-  ZDICT_cover_params_t parameters;
-  size_t compressedSize;
+    ZSTD_pthread_mutex_t mutex;
+    ZSTD_pthread_cond_t cond;
+    size_t liveJobs;
+    void *dict;
+    size_t dictSize;
+    ZDICT_cover_params_t parameters;
+    size_t compressedSize;
 } COVER_best_t;
 
 /**
  * A segment is a range in the source as well as the score of the segment.
  */
 typedef struct {
-  U32 begin;
-  U32 end;
-  U32 score;
+    U32 begin;
+    U32 end;
+    U32 score;
 } COVER_segment_t;
 
 /**
  *  Checks total compressed size of a dictionary
  */
 size_t COVER_checkTotalCompressedSize(const ZDICT_cover_params_t parameters,
-                                      const size_t *samplesSizes, const BYTE *samples,
-                                      size_t *offsets,
+                                      const size_t *samplesSizes,
+                                      const BYTE *samples, size_t *offsets,
                                       size_t nbTrainSamples, size_t nbSamples,
-                                      BYTE *const dict, size_t dictBufferCapacity);
+                                      BYTE *const dict,
+                                      size_t dictBufferCapacity);
 
 /**
  * Returns the sum of the sample sizes.
  */
-size_t COVER_sum(const size_t *samplesSizes, unsigned nbSamples) ;
+size_t COVER_sum(const size_t *samplesSizes, unsigned nbSamples);
 
 /**
  * Initialize the `COVER_best_t`.

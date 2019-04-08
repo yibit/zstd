@@ -25,21 +25,22 @@ static const int kMaxClevel = 19;
 
 static ZSTD_CCtx *cctx = NULL;
 static ZSTD_DCtx *dctx = NULL;
-static void* cBuf = NULL;
-static void* rBuf = NULL;
+static void *cBuf = NULL;
+static void *rBuf = NULL;
 static size_t bufSize = 0;
 static uint32_t seed;
 
-static size_t roundTripTest(void *result, size_t resultCapacity,
-                            void *compressed, size_t compressedCapacity,
-                            const void *src, size_t srcSize)
+static size_t
+roundTripTest(void *result, size_t resultCapacity, void *compressed,
+              size_t compressedCapacity, const void *src, size_t srcSize)
 {
     int const cLevel = FUZZ_rand(&seed) % kMaxClevel;
     ZSTD_parameters const params = ZSTD_getParams(cLevel, srcSize, 0);
     size_t ret = ZSTD_compressBegin_advanced(cctx, NULL, 0, params, srcSize);
     FUZZ_ZASSERT(ret);
 
-    ret = ZSTD_compressBlock(cctx, compressed, compressedCapacity, src, srcSize);
+    ret =
+        ZSTD_compressBlock(cctx, compressed, compressedCapacity, src, srcSize);
     FUZZ_ZASSERT(ret);
     if (ret == 0) {
         FUZZ_ASSERT(resultCapacity >= srcSize);
@@ -50,7 +51,8 @@ static size_t roundTripTest(void *result, size_t resultCapacity,
     return ZSTD_decompressBlock(dctx, result, resultCapacity, compressed, ret);
 }
 
-int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
+int
+LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
 {
     size_t neededBufSize;
 
@@ -85,8 +87,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
         FUZZ_ASSERT_MSG(!memcmp(src, rBuf, size), "Corruption!");
     }
 #ifndef STATEFUL_FUZZING
-    ZSTD_freeCCtx(cctx); cctx = NULL;
-    ZSTD_freeDCtx(dctx); dctx = NULL;
+    ZSTD_freeCCtx(cctx);
+    cctx = NULL;
+    ZSTD_freeDCtx(dctx);
+    dctx = NULL;
 #endif
     return 0;
 }

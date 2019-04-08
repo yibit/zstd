@@ -16,53 +16,58 @@
 #include <zstd.h>      // presumes zstd library is installed
 #include "utils.h"
 
-static void compress_orDie(const char* fname, const char* oname)
+static void
+compress_orDie(const char *fname, const char *oname)
 {
     size_t fSize;
-    void* const fBuff = mallocAndLoadFile_orDie(fname, &fSize);
+    void *const fBuff = mallocAndLoadFile_orDie(fname, &fSize);
     size_t const cBuffSize = ZSTD_compressBound(fSize);
-    void* const cBuff = malloc_orDie(cBuffSize);
+    void *const cBuff = malloc_orDie(cBuffSize);
 
     size_t const cSize = ZSTD_compress(cBuff, cBuffSize, fBuff, fSize, 1);
     if (ZSTD_isError(cSize)) {
-        fprintf(stderr, "error compressing %s : %s \n", fname, ZSTD_getErrorName(cSize));
+        fprintf(stderr, "error compressing %s : %s \n", fname,
+                ZSTD_getErrorName(cSize));
         exit(8);
     }
 
     saveFile_orDie(oname, cBuff, cSize);
 
     /* success */
-    printf("%25s : %6u -> %7u - %s \n", fname, (unsigned)fSize, (unsigned)cSize, oname);
+    printf("%25s : %6u -> %7u - %s \n", fname, (unsigned)fSize, (unsigned)cSize,
+           oname);
 
     free(fBuff);
     free(cBuff);
 }
 
-static char* createOutFilename_orDie(const char* filename)
+static char *
+createOutFilename_orDie(const char *filename)
 {
     size_t const inL = strlen(filename);
     size_t const outL = inL + 5;
-    void* const outSpace = malloc_orDie(outL);
+    void *const outSpace = malloc_orDie(outL);
     memset(outSpace, 0, outL);
     strcat(outSpace, filename);
     strcat(outSpace, ".zst");
-    return (char*)outSpace;
+    return (char *)outSpace;
 }
 
-int main(int argc, const char** argv)
+int
+main(int argc, const char **argv)
 {
-    const char* const exeName = argv[0];
+    const char *const exeName = argv[0];
 
-    if (argc!=2) {
+    if (argc != 2) {
         printf("wrong arguments\n");
         printf("usage:\n");
         printf("%s FILE\n", exeName);
         return 1;
     }
 
-    const char* const inFilename = argv[1];
+    const char *const inFilename = argv[1];
 
-    char* const outFilename = createOutFilename_orDie(inFilename);
+    char *const outFilename = createOutFilename_orDie(inFilename);
     compress_orDie(inFilename, outFilename);
     free(outFilename);
     return 0;

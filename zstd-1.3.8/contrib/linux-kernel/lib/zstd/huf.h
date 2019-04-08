@@ -101,9 +101,10 @@ typedef U32 HUF_DTable;
 /* ****************************************
 *  Advanced decompression functions
 ******************************************/
-size_t HUF_decompress4X_DCtx_wksp(HUF_DTable *dctx, void *dst, size_t dstSize, const void *cSrc, size_t cSrcSize, void *workspace, size_t workspaceSize); /**< decodes RLE and uncompressed */
+size_t HUF_decompress4X_DCtx_wksp(HUF_DTable *dctx, void *dst, size_t dstSize, const void *cSrc, size_t cSrcSize, void *workspace,
+				  size_t workspaceSize); /**< decodes RLE and uncompressed */
 size_t HUF_decompress4X_hufOnly_wksp(HUF_DTable *dctx, void *dst, size_t dstSize, const void *cSrc, size_t cSrcSize, void *workspace,
-				size_t workspaceSize);							       /**< considers RLE and uncompressed as errors */
+				     size_t workspaceSize); /**< considers RLE and uncompressed as errors */
 size_t HUF_decompress4X2_DCtx_wksp(HUF_DTable *dctx, void *dst, size_t dstSize, const void *cSrc, size_t cSrcSize, void *workspace,
 				   size_t workspaceSize); /**< single-symbol decoder */
 size_t HUF_decompress4X4_DCtx_wksp(HUF_DTable *dctx, void *dst, size_t dstSize, const void *cSrc, size_t cSrcSize, void *workspace,
@@ -127,7 +128,8 @@ or to save and regenerate 'CTable' using external methods.
 /* FSE_count() : find it within "fse.h" */
 unsigned HUF_optimalTableLog(unsigned maxTableLog, size_t srcSize, unsigned maxSymbolValue);
 typedef struct HUF_CElt_s HUF_CElt; /* incomplete type */
-size_t HUF_writeCTable_wksp(void *dst, size_t maxDstSize, const HUF_CElt *CTable, unsigned maxSymbolValue, unsigned huffLog, void *workspace, size_t workspaceSize);
+size_t HUF_writeCTable_wksp(void *dst, size_t maxDstSize, const HUF_CElt *CTable, unsigned maxSymbolValue, unsigned huffLog, void *workspace,
+			    size_t workspaceSize);
 size_t HUF_compress4X_usingCTable(void *dst, size_t dstSize, const void *src, size_t srcSize, const HUF_CElt *CTable);
 
 typedef enum {

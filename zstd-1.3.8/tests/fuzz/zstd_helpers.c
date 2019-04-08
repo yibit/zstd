@@ -13,18 +13,22 @@
 #include "fuzz_helpers.h"
 #include "zstd.h"
 
-static void set(ZSTD_CCtx *cctx, ZSTD_cParameter param, int value)
+static void
+set(ZSTD_CCtx *cctx, ZSTD_cParameter param, int value)
 {
     FUZZ_ZASSERT(ZSTD_CCtx_setParameter(cctx, param, value));
 }
 
-static void setRand(ZSTD_CCtx *cctx, ZSTD_cParameter param, unsigned min,
-                    unsigned max, uint32_t *state) {
+static void
+setRand(ZSTD_CCtx *cctx, ZSTD_cParameter param, unsigned min, unsigned max,
+        uint32_t *state)
+{
     unsigned const value = FUZZ_rand32(state, min, max);
     set(cctx, param, value);
 }
 
-ZSTD_compressionParameters FUZZ_randomCParams(size_t srcSize, uint32_t *state)
+ZSTD_compressionParameters
+FUZZ_randomCParams(size_t srcSize, uint32_t *state)
 {
     /* Select compression parameters */
     ZSTD_compressionParameters cParams;
@@ -32,14 +36,14 @@ ZSTD_compressionParameters FUZZ_randomCParams(size_t srcSize, uint32_t *state)
     cParams.hashLog = FUZZ_rand32(state, ZSTD_HASHLOG_MIN, 15);
     cParams.chainLog = FUZZ_rand32(state, ZSTD_CHAINLOG_MIN, 16);
     cParams.searchLog = FUZZ_rand32(state, ZSTD_SEARCHLOG_MIN, 9);
-    cParams.minMatch = FUZZ_rand32(state, ZSTD_MINMATCH_MIN,
-                                          ZSTD_MINMATCH_MAX);
+    cParams.minMatch = FUZZ_rand32(state, ZSTD_MINMATCH_MIN, ZSTD_MINMATCH_MAX);
     cParams.targetLength = FUZZ_rand32(state, 0, 512);
     cParams.strategy = FUZZ_rand32(state, ZSTD_STRATEGY_MIN, ZSTD_STRATEGY_MAX);
     return ZSTD_adjustCParams(cParams, srcSize, 0);
 }
 
-ZSTD_frameParameters FUZZ_randomFParams(uint32_t *state)
+ZSTD_frameParameters
+FUZZ_randomFParams(uint32_t *state)
 {
     /* Select frame parameters */
     ZSTD_frameParameters fParams;
@@ -49,7 +53,8 @@ ZSTD_frameParameters FUZZ_randomFParams(uint32_t *state)
     return fParams;
 }
 
-ZSTD_parameters FUZZ_randomParams(size_t srcSize, uint32_t *state)
+ZSTD_parameters
+FUZZ_randomParams(size_t srcSize, uint32_t *state)
 {
     ZSTD_parameters params;
     params.cParams = FUZZ_randomCParams(srcSize, state);
@@ -57,7 +62,8 @@ ZSTD_parameters FUZZ_randomParams(size_t srcSize, uint32_t *state)
     return params;
 }
 
-void FUZZ_setRandomParameters(ZSTD_CCtx *cctx, size_t srcSize, uint32_t *state)
+void
+FUZZ_setRandomParameters(ZSTD_CCtx *cctx, size_t srcSize, uint32_t *state)
 {
     ZSTD_compressionParameters cParams = FUZZ_randomCParams(srcSize, state);
     set(cctx, ZSTD_c_windowLog, cParams.windowLog);
