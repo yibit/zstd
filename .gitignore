@@ -1,0 +1,8 @@
+./../redis-5.0/tools/sunya.sh
+*.udb
+.DS_Store
+*.tags
+*.gz
+*.tar
+*.zip
+*~
