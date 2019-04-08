@@ -394,3 +394,6 @@ staticAnalyze:
 	$(CC) -v
 	CC=$(CC) CPPFLAGS=-g $(SCANBUILD) --status-bugs -v $(MAKE) allzstd examples contrib
 endif
+
+format:
+	cd ../zstd-1.3.8 && find . -name "*.[h|c]" |xargs -I {} clang-format -i --style=file {}

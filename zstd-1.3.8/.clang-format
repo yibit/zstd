@@ -1,0 +1,25 @@
+# Run manually to reformat a file:
+# clang-format -i --style=file <file>
+BasedOnStyle: Google
+DerivePointerAlignment: false
+SortIncludes: false
+IndentWidth: 4
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterEnum: true
+  AfterStruct: false
+  AfterFunction: true
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+IndentCaseLabels: false
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false 
+AlignConsecutiveDeclarations: false
+AlignEscapedNewlinesLeft: true
+AlignOperands: true
+AlignTrailingComments: true
+PointerAlignment: Right
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false

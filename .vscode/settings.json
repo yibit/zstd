@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "*.h": "c",
+        "*.c": "c",
+        "*.sh": "shellscript",
+        "*.lua": "lua",
+        "*.go": "go"
+    },
+    "files.encoding": "utf8",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/*.o": true,
+        "**/*.gz": true,
+        "**/*.tar": true,
+        "**/*.zip": true
+    }
+}
